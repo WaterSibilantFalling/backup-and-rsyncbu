@@ -1,0 +1,12 @@
+
+
+BACKUP_DIR_MAIN   		/mnt/backup_1TB/stephen/backups/rsync_backup
+DATE					/usr/local/bin/sdmdate
+__DATE__				DATE
+
+RSYNC_OPTS				" -r -p -t -g -o -D -v -u -i --delete --backup --log-file=\"__DATE__"_rsyncBackupMessages.txt"\" --backup-dir=\"$BACKUP_DIR_MAIN/KEPT_OF_NOW_DELETED_FROM_SRC\" ";
+
+RSYNC_OPTS_NO_LONGTERM	 -r -p -t -g -o -D -v -u -i --delete --log-file=\__DATE__"_rsyncBackupMessages.txt" 
+
+
+

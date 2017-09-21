@@ -1,0 +1,246 @@
+$VAR1 = bless( {
+                 '_ARGS' => {},
+                 '_SUB_SYNTAX' => undef,
+                 '_FILE_NAME' => './rsyncBackup.conf',
+                 '_OO_INTERFACE' => 1,
+                 '_STACK' => [],
+                 '_DATA' => {
+                              'LOCAL_SBIN' => {
+                                                'source' => [
+                                                              '/usr/local/sbin'
+                                                            ],
+                                                'dest' => [
+                                                            'main_backup_dir'
+                                                          ],
+                                                'doit' => [
+                                                            '1'
+                                                          ],
+                                                'excludePatterns' => [
+                                                                       'jdownloader/ jd2 target/ kompozerDir'
+                                                                     ],
+                                                'options' => [
+                                                               'standard_rsync_options'
+                                                             ]
+                                              },
+                              'config' => {
+                                            'LOGFILE' => [
+                                                           'DATE_rsyncBackupMessages.txt'
+                                                         ],
+                                            'DATE' => [
+                                                        '/usr/local/bin/sdmdate'
+                                                      ]
+                                          },
+                              'MUSIC' => {
+                                           'options' => [
+                                                          'standard_rsync_options'
+                                                        ],
+                                           'doit' => [
+                                                       '0'
+                                                     ],
+                                           'excludePatterns' => [
+                                                                  'films/ audiobooks/ audiobook REMOVAL podcasts/ *.rar'
+                                                                ],
+                                           'dest' => [
+                                                       'main_backup_dir'
+                                                     ],
+                                           'source' => [
+                                                         '/usbhd/music'
+                                                       ]
+                                         },
+                              'AUDIOBOOKS' => {
+                                                'options' => [
+                                                               'no_lt_bu_options'
+                                                             ],
+                                                'source' => [
+                                                              '/usbhd/music/audiobooks'
+                                                            ],
+                                                'dest' => [
+                                                            'main_backup_dir'
+                                                          ],
+                                                'excludePatterns' => [
+                                                                       'have_read/ podcasts/ *.rar'
+                                                                     ],
+                                                'doit' => [
+                                                            '0'
+                                                          ]
+                                              },
+                              '20G_MOST' => {
+                                              'doit' => [
+                                                          '0'
+                                                        ],
+                                              'excludePatterns' => [
+                                                                     '*liverpool* *motd* *MOTD* *sport* seedingMusic'
+                                                                   ],
+                                              'dest' => [
+                                                          'main_backup_dir/torrenting'
+                                                        ],
+                                              'source' => [
+                                                            '/mnt/20g'
+                                                          ],
+                                              'options' => [
+                                                             'no_lt_bu_options'
+                                                           ]
+                                            },
+                              'TORRENTING_b' => {
+                                                  'options' => [
+                                                                 'no_lt_bu_options'
+                                                               ],
+                                                  'source' => [
+                                                                '/mnt/tnt'
+                                                              ],
+                                                  'dest' => [
+                                                              'main_backup_dir/downloading/'
+                                                            ],
+                                                  'excludePatterns' => [],
+                                                  'doit' => [
+                                                              '0'
+                                                            ]
+                                                },
+                              'FILMS_SEEN' => {
+                                                'source' => [
+                                                              '/usbhd/films/SEEN'
+                                                            ],
+                                                'dest' => [
+                                                            'main_backup_dir'
+                                                          ],
+                                                'excludePatterns' => [
+                                                                       '1'
+                                                                     ],
+                                                'doit' => [
+                                                            '0'
+                                                          ],
+                                                'options' => [
+                                                               'standard_rsync_options'
+                                                             ]
+                                              },
+                              'BENCH' => {
+                                           'excludePatterns' => [
+                                                                  'toInstall'
+                                                                ],
+                                           'doit' => [
+                                                       '0'
+                                                     ],
+                                           'source' => [
+                                                         '/home/bench'
+                                                       ],
+                                           'dest' => [
+                                                       'main_backup_dir'
+                                                     ],
+                                           'options' => [
+                                                          'standard_rsync_options'
+                                                        ]
+                                         },
+                              'FILMS_RTW' => {
+                                               'options' => [
+                                                              'standard_rsync_options'
+                                                            ],
+                                               'source' => [
+                                                             '/usbhd/films/READY_TO_WATCH'
+                                                           ],
+                                               'dest' => [
+                                                           'main_backup_dir/films/'
+                                                         ],
+                                               'excludePatterns' => [],
+                                               'doit' => [
+                                                           '0'
+                                                         ]
+                                             },
+                              'rsync_options' => {
+                                                   'no_lt_bu_options' => [
+                                                                           ' -r -p -t -g -o -D -v -u -i --delete --log-file=LOGFILE'
+                                                                         ],
+                                                   'standard_rsync_options' => [
+                                                                                 ' -r -p -t -g -o -D -v -u -i --delete --backup --log-file=LOGFILE --backup-dir="main_backup_dir/KEPT_OF_NOW_DELETED_FROM_SRC" '
+                                                                               ]
+                                                 },
+                              'TORRENTING_a' => {
+                                                  'options' => [
+                                                                 'no_lt_bu_options'
+                                                               ],
+                                                  'doit' => [
+                                                              '0'
+                                                            ],
+                                                  'excludePatterns' => [
+                                                                         'football'
+                                                                       ],
+                                                  'source' => [
+                                                                '/mnt/atnt'
+                                                              ],
+                                                  'dest' => [
+                                                              'main_backup_dir/downloading/'
+                                                            ]
+                                                },
+                              'LOCAL_BIN' => {
+                                               'doit' => [
+                                                           '0'
+                                                         ],
+                                               'excludePatterns' => [
+                                                                      'jdownloader/ jd2 target/ kompozerDir'
+                                                                    ],
+                                               'source' => [
+                                                             '/usr/local/bin'
+                                                           ],
+                                               'dest' => [
+                                                           'main_backup_dir'
+                                                         ],
+                                               'options' => [
+                                                              'standard_rsync_options'
+                                                            ]
+                                             },
+                              'backupDirs' => {
+                                                'main_backup_dir' => [
+                                                                       '/mnt/backup_1TB/stephen/backups/rsync_backup'
+                                                                     ]
+                                              },
+                              'ETC' => {
+                                         'doit' => [
+                                                     '1'
+                                                   ],
+                                         'excludePatterns' => [],
+                                         'dest' => [
+                                                     'main_backup_dir'
+                                                   ],
+                                         'source' => [
+                                                       '/etc'
+                                                     ],
+                                         'options' => [
+                                                        'standard_rsync_options'
+                                                      ]
+                                       },
+                              '20G_SEED' => {
+                                              'options' => [
+                                                             'no_lt_bu_options'
+                                                           ],
+                                              'source' => [
+                                                            '/mnt/20g/seedingmusic'
+                                                          ],
+                                              'dest' => [
+                                                          'main_backup_dir'
+                                                        ],
+                                              'doit' => [
+                                                          '1'
+                                                        ],
+                                              'excludePatterns' => []
+                                            },
+                              'LIBRARY' => {
+                                             'options' => [
+                                                            'standard_rsync_options'
+                                                          ],
+                                             'doit' => [
+                                                         '0'
+                                                       ],
+                                             'excludePatterns' => [
+                                                                    '*.avi *.MOV'
+                                                                  ],
+                                             'dest' => [
+                                                         'main_backup_dir'
+                                                       ],
+                                             'source' => [
+                                                           '/library'
+                                                         ]
+                                           }
+                            },
+                 '_IS_MODIFIED' => 0,
+                 '_SYNTAX' => 'ini',
+                 '_FILE_HANDLE' => 1
+               }, 'Config::Simple' );
