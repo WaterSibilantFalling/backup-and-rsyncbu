@@ -1,13 +1,13 @@
 # rsyncbu
 
-rsyncbu is a simple wrapper around rsync. rsyncbu reads an *.ini style configuration file and then manages an arbitrary number of similar or completely different rsync backup jobs. 
+rsyncbu is a simple wrapper around rsync. rsyncbu reads an \*.ini style configuration file and then manages an arbitrary number of similar or completely different rsync backup jobs. 
 
 rsyncbu is written in Perl5 using only standard libraries. 
 
 
 # Configuration
 
-All configuration is done through rsyncbu's *.conf file. The configuration file defaults to rsyncbu.conf in the current directory. However, a different configuration file can be passed to rsyncbu.
+All configuration is done through rsyncbu's \*.conf file. The configuration file defaults to rsyncbu.conf in the current directory. However, a different configuration file can be passed to rsyncbu.
 
 ### The rsyncbu.conf configuraion file
 
