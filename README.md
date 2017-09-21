@@ -23,7 +23,7 @@ The rsyncbu.conf file has two major components:
 1. meta settings and aliases
 2. backup control sections
 
-###### meta settings & aliases
+##### meta settings & aliases
 
 Sets, specific groups, of rsync command line options can be establised
 ```
@@ -41,7 +41,7 @@ main_backup_dir=/mnt/backup_1TB/backups/rsync_backup
 some_other_dir=/aaa/bbb/ccc
 ```
 
-###### backup control sections
+##### backup control sections
 
 Each of these sections specify the souce and destination of one section of the backup process. 
 
