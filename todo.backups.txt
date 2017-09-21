@@ -1,0 +1,24 @@
+
+don't run if there are no new files
+
+make each gz file to a temp dir, faked copy of its real dir, and tar with that path. 
+	don't delete these directories
+	at end, in one CAREFUL movement, delete the directories.
+	? when to delete the gz files - as soon as added, as know 
+
+can only search for changed directories, then search for filese in the dir if the dir is changed
+
+is the evaluation of 'changed' OK? 
+
+use a proper configuration
+
+Setup:
+	make an alias 
+alias nobu=' dontBuThisDir.pl -d $PWD -f '
+
+
+IMAP
+	read the mail directory
+	determine which are 'expired' 
+	delete those
+

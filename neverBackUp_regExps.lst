@@ -1,0 +1,92 @@
+# These are regexps of files to NOT include in backups
+# Passed to egrep -v " expression here " 
+# don't escape the / or * characters 
+# aaaa/.+/ means no subdirectories, but directory contents itself is ok
+
+#sub directories of /usr/local/bin/ (files ok)
+/usr/local/bin/.+/
+
+# no eclipse stuff
+/eclipse/.+/
+
+#no subdirs of my active work. Backed up independently
+work/Active/.+/
+
+# lots of etc stuff
+ssl/certs
+dictionaries-common
+/cups/
+/etc/init.d/.depend
+/etc/ld.so.cache
+/etc/resolv.conf
+/etc/ccpd.conf
+/etc/fltk/fltk.org/fltk.prefs
+/etc/blkid.tab
+/etc/samba/dhcp.conf
+/etc/samba/smb.conf
+/etc/blkid.tab.old
+
+
+# this is meant to be /system/toInstall/*
+/toInstall/
+
+# do not back up the local copies of the remote backups
+/home/backup/remoteBackups_localCopies
+/work/BACKUP/remoteBackups_localCopies
+
+# do not back up my N day vim backups
+/work/BACKUP/vimBackups
+
+# no temp, swap files
+\.swp$
+
+# no mysql until proper handling
+/var/lib/mysql
+
+# ignore the changing /etc/hosts file
+/etc/hosts
+
+# no library books (if in a 'books' directory)
+library/.*/books/
+
+###### EXTERNALLY ADDED DIRECTORIES ##########
+#
+# these are added by the 'nobu' command
+#
+##############################################
+
+/home/temp
+/home/bench/work/cv/brochure/sampleBrochures
+/home/library/books
+/home/library/soundRecordings
+/home/library/images/moviesFromMyCamera
+/home/library/images/cameraimages
+/home/library/history/Hunter_S._Thompson_911_Interview_2002_08_29.mp3
+/home/library/images/iconsAndSymbols_toUse/
+/home/library/writing/magsAndJournals-processMe/
+/home/library/___PRINT/printed/
+/home/library/___PRINT/work/
+/home/library/___PRINT/colour/
+/home/bench/work/cv/brochure/imagesToUse/
+/library/images/documentationImages/
+/home/bench/work/cv/brochure/work/sampleBrochures/
+/home/bench/work/cv/brochure/work/
+/home/bench/coding/mp3/mp3s/
+/usbhd/music/musicLibrary/
+/home/temp/xxxx/
+/home/library/it/programming/javascript/videoCourse/
+/home/bench/collections/specialDocuments/
+/home/bench/collections/scientology/
+/home/bench/collections/911/books/
+/usbhd/currCameraImages/
+/usbhd/library_oversize/
+/usbhd/miscStorage/
+/usbhd/music/
+/usbhd/nihan/
+/home/bench/turkish/listening/
+/home/bench/turkish/exams/
+/home/library/security/podcasts/
+/usr/
+/var/
+/mnt/20g/torrents/torrent_files/
+/home/bench/system/toInstall/

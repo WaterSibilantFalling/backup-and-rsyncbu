@@ -1,0 +1,314 @@
+#!/usr/bin/perl
+
+
+use English;
+use strict;
+use warnings; 
+use POSIX;
+use File::stat;
+use FileHandle;
+use IPC::Open2;
+use Getopt::Long;
+
+require("buFunctions.pl");
+
+#this script :
+#
+#
+#	over directories listed in the conf file it compiles a list of 
+#	all the files to back up (files that have changed over the backup period)
+#	files are then removed based on another file of ` remove patterns `.
+#	a copy of each file is qzipped and added to a tar archive 
+#	when the archive is near to the limiting size it is ` processed ` by a function
+#	processing currently means emailing the file to two email addresses. 
+#
+# 	sent mail is not stored (by ssmtp) while this program is running. 
+
+
+# TODO
+#	bug:	all, incl 'find' s, should be nice -n 19
+#	bug:	date should be previous BU of type, not just the period
+#			else miss files if not run; a week may miss three days. 
+#	bug:	should not run if no email, or no internet
+#	bug: 	I am pretty sure that some backup emails are corrupt
+#
+#	TODO:	apply a password to the tar (?) or the gzip files
+#	TODO:	delete the DelAfter files
+#	TODO:	backup syslogs - poss only at some times or on cmdline switch
+#	TODO:	find's stderr (or WHY) to this prog's STDERR? how?
+#	TODO:	imap delete files from the email account
+#	TODO:	IMPORTANT: imap check that each email arrives
+#	TODO:	MySql dbs extract and backup
+#	TODO:	make a simple config file (using Config::File
+#	TODO:	IMPORTANT: file extract, retrive routine
+#	TODO:	Store backup records in a database (sqlLite). this will also show
+#			what files changed on what days.
+#
+#	DONE:	NOT DONE? delete old local copies of backups
+#	DONE:	NOT DONT? delete old copies of BUs from emails
+#
+#	DONE: 	get a gmail address (that works), or any other 4 GB email
+#	DONE :	store a local copy of each archive. 
+#	DONE:	bug: but not where it will be included in the next backup
+#	DONE: 	check the size of the files before they are sent
+#	NOT A BUG: fileA changes and all the files named fileA become included
+#	DONE	add a header text to the file listing file
+#	DONE 	get the full path of the file originally linked to (execdir pwd ?)
+#	DELME:	test string for testing github
+
+
+# --- constants
+# hardcoded: something has to be. 
+my %buConfigs = do '/home/backup/buConfigs.pl';
+
+my $now = `date  +"%Y-%b-%d_time:_%H-%M"`;
+chomp $now;
+
+# --- usage message
+
+my $usageMessage=
+"Usage:\n\n"
+."\tbackup	--buPeriod [day,week,month,all] | --since 'date time spec string' \n"
+."\n";
+
+# --- input
+
+my $periodDescString = "no string supplied";
+my $thisBUtimePeriod;
+GetOptions(	"buPeriod:s"	=> \$thisBUtimePeriod,
+			"since:s"		=> \$periodDescString
+			);
+
+if ( (not defined $thisBUtimePeriod)
+	||
+		(($thisBUtimePeriod ne "day") 
+		&& ($thisBUtimePeriod ne "month") 
+		&& ($thisBUtimePeriod ne "week")  
+		&& ($thisBUtimePeriod ne "all")  )
+	&&
+		($periodDescString eq "no string supplied")
+	)
+	{ 
+		die $usageMessage; 
+	}; 
+
+
+
+# --- other peparation
+
+# - because we don't want to store the sent file emails 
+`touch ~/sent; mv ~/sent ~/temp_sent`;
+
+# - make a unique directory for temp storage during process so multiple can run at 
+#   the same time 
+# 	make the dir
+my $origWorkDir = $buConfigs{buWorkDir};
+my $newTmpDir = $origWorkDir."$thisBUtimePeriod"."__$now/";
+`mkdir -p $newTmpDir `;
+
+# 	update the configurations
+# 	this is a bad hack - the configs don't represent the truth
+# 	while the program is running. 
+while ((my $key, my $dir2Change) = each %buConfigs) {
+	($buConfigs{$key} = $dir2Change) =~ s/$origWorkDir/$newTmpDir/ ;
+}
+
+# prepare the date-reference files becuase needed by the 'find' command 
+# make the archive's base name
+
+my $archiveBaseName; 
+my $referenceTimeFile = $buConfigs{buTimeFile};
+if (defined ($thisBUtimePeriod) ) {
+	if ("all" eq $thisBUtimePeriod) {
+		`touch -d "-10 years" $referenceTimeFile `;
+		$archiveBaseName = "bu:"."_ALL_FILES"."_date:".$now;
+	}
+	else {
+		`touch -d " -1 $thisBUtimePeriod " $referenceTimeFile `;
+		$archiveBaseName = "bu:_period:".$thisBUtimePeriod."_date:".$now;
+	}
+}
+else {
+	`touch -d " $periodDescString " $referenceTimeFile `;
+	my $aaa = ($periodDescString =~ s/ /-/g);
+	$archiveBaseName = "bu_"."for_$aaa"."as_at_".$now;
+};
+# - the actual file of files to archive
+my $bulist_file_raw = $buConfigs{buHistoryDir}."File_listing_".$archiveBaseName.".lst";
+
+
+
+
+
+
+#--- collect files to BU 
+foreach my $currDirID ("buStandardLinksDir", "buIndivLinksDir", "buFilesNoDelAfter", "buFilesDelAfter", "buHistoryDir") {
+	# get the real dir from the bu_config
+	my $currDir = $buConfigs{$currDirID};
+	# if a link...
+	my $linksRealTarget = `readlink $currDir `; 
+	if (3 < length $linksRealTarget) {
+		chomp $linksRealTarget;
+		$currDir = $linksRealTarget;
+		addToBuList($currDir,  $bulist_file_raw, $referenceTimeFile);
+	} 
+	# else it is a dir. Replace any links in the dir with what the links point to
+	# so far ONLY directories. 
+	else
+	{
+		# we know that it is a directory, so...
+		chomp(my @dirContents = `nice -n 19 find $currDir -maxdepth 1 -mindepth 1`);
+		# over item in the (sub)dir...
+		foreach $currDir (@dirContents) {
+			# add dir,file or link to the bu list
+			addToBuList($currDir,  $bulist_file_raw, $referenceTimeFile);
+		}
+	};
+	sleep 1;
+};
+
+
+#always back up the entire backup history-listing directory
+my $buListingFN = $buConfigs{buHistoryDir}.$buConfigs{buAllListingsName}.".tgz";
+`rm -f $buListingFN`; 
+my $buListingDir = $buConfigs{buHistoryDir};
+`nice -n 19 tar -czf $buListingFN $buListingDir/*.* ` ;
+
+
+#--- remove the files that we don't want from the 'to backup' file input list
+# over the list of 'to not back up' files, grep -v each of them from the 
+# 'to back up' list
+open my $noFile, '<', $buConfigs{buNeverListFilename};
+while (my $line = <$noFile>) {
+	chomp $line;
+	next if $line =~ /^#/;
+	next if $line !~ /\w/;
+	` cp $bulist_file_raw $buConfigs{buTempFileList} `;
+	# remove one class of files from the to-backup list
+	` egrep -v \"$line\" $buConfigs{buTempFileList} > $bulist_file_raw `;
+};
+# also: don't backup the directory of the local copies of the backups
+` cp $bulist_file_raw $buConfigs{buTempFileList} `;
+` egrep -v \"$buConfigs{buLocalStoreDir}\" $buConfigs{buTempFileList} > $bulist_file_raw `;
+# also: don't backup the directory of bu file listings: separate summary appended
+` cp $bulist_file_raw $buConfigs{buTempFileList} `;
+` egrep -v \"$buListingDir\" $buConfigs{buTempFileList} > $bulist_file_raw `; 
+# now sort the raw file list: ensure some sort of order in it
+` sort $bulist_file_raw`;
+# append the 'history of recent backup listings file' at the bottom of each list
+` echo $buListingFN >> $bulist_file_raw `;
+
+close $noFile;
+sleep 1;
+
+#--- now have the real list of files to bu, in  $bulist_file_raw
+
+
+#--- over the file list, gzip each file listed there and add to archive.
+my $sysPrep = ' IFS=$(echo -en "\n\b") ; echo $IFS ;  ';	# not needed
+# add a header to the file listing, which will become the email's body text.
+` echo \"$buConfigs{buFileListingHeader}\" >  $buConfigs{buCurrArchiveFileListingFile}`; 
+open my $fileOfFilenames, '<', $bulist_file_raw ;
+my $cmd;
+my $flag; 
+my $finished ;
+my $archiveIsFull = 0;
+my $archiveCount= 1;
+my $archiveSize=0;
+my $thisFileSize;
+my $thisFileSizeGz;
+my $currGzFileToBU;
+` rm -f $buConfigs{buTempArchive} `;
+
+while (my $currFileToBU = <$fileOfFilenames>) {
+	# NB: current input is defined while not eof
+	if (defined $currFileToBU) {
+		chomp $currFileToBU;
+		$currFileToBU =~ s/ /\\ /g;
+		next unless -e $currFileToBU;		# file may have diappeared recently
+
+		# won't back up files larger than the total (compressed) archive size
+		$thisFileSize  = findFileSizeInK( $currFileToBU );
+		if ($thisFileSize > $buConfigs{buArchiveMaxSize_K}) {
+			print STDERR "Bu: Error: $currFileToBU ($thisFileSize K): too large for backup\n";
+			next;
+		}
+		
+		# make the gzip file (that will be added to add to the archive)
+		$currGzFileToBU = $currFileToBU.".gz";
+			$flag='true' if $currFileToBU =~ / /; $flag=();
+		$cmd = "$sysPrep gzip --best $currFileToBU -c > $currGzFileToBU ";
+		` $cmd `;
+
+		# is the archive ready to send?
+		# Send Archive   iff   archive Size + next file > max archive size
+		$thisFileSizeGz  = findFileSizeInK( $currGzFileToBU );
+		$archiveIsFull = 
+			($archiveSize + $thisFileSize > $buConfigs{buArchiveMaxSize_K}); 
+	} 
+	else {
+		$finished = "finished" ; # for the debugger
+	};
+
+	# send archive if either finished, or the archive is full
+	if (	($archiveIsFull) 
+		|| 	((defined $finished) && ($finished eq "finished"))	) {
+		storeArchive( 
+			$archiveCount, 
+			$archiveBaseName,
+			%buConfigs);
+
+		# prepare for next archive file to be sent
+		sleep 1;
+		$archiveCount++;
+		$archiveSize=0;
+		`rm -f ~/sent`;
+		# brand new file listing file:
+		`echo \"$buConfigs{buFileListingHeader}\" >  \
+			$buConfigs{buCurrArchiveFileListingFile}`; 
+		# are we done? 
+		last if ((defined $finished) && ($finished eq "finished")) ;
+	};
+
+	# Store the *gz file and info in the filelisting file
+	# info in filelisting file
+	$cmd = 
+	$sysPrep
+	." echo \"$currFileToBU"
+	." (orig: $thisFileSize"."K compressed: $thisFileSizeGz"."K) \" "
+	." >> $buConfigs{buCurrArchiveFileListingFile} ";
+	` $cmd `;
+	# file into archive
+	# original bug: tar ... --label=seeArchiveName *enforced* matching labels: 
+	# 				and with errors discarded: nothing stored
+	my $archiveCmd = 
+	$sysPrep 
+	." tar  --append --atime-preserve  "
+	." -f $buConfigs{buTempArchive}  $currGzFileToBU 2>&1 > /dev/null ";
+	` $archiveCmd `;
+	# remove the gzip once added to the archive
+	` rm $currGzFileToBU `; 	# CAREFUL here!
+								# should have some check: exists, normal, f, single
+								# before deleting, else wrong file may go.
+								# and one day it will 
+	sleep 1;
+	$archiveSize = findFileSizeInK( $buConfigs{buTempArchive} );
+}
+
+# the final archive. 
+if ($archiveSize > 0) {
+	storeArchive( 
+		$archiveCount, 
+		$archiveBaseName,
+		%buConfigs);
+}
+
+# restore the sent mail
+`mv ~/temp_sent ~/sent`;
+
+my $dirCount = ($newTmpDir =~ s,/,/,g);		
+die "Trying to delete in the directory $newTmpDir as \$newTmpDir: $! \n\n" 
+	unless (3<=$dirCount);
+die "Trying to delete in the directory $newTmpDir as \$newTmpDir: $! \n\n"  
+	unless ($newTmpDir =~ /$buConfigs{buWorkDir}/);	
+`rm -fr $newTmpDir ` ;   
