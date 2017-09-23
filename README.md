@@ -4,6 +4,24 @@ A perl 5 script that automatically backs ups all changed files:
 1.	to a remote free email service
 2.	to a local directory
 
+All changed files over the backup time period are tar'ed and gziped into tar files of a limited size, say 10MB. A listing of the files in each tar file is written to the body of an email, the tar file is attached as an attachment, and the ID of the email and each of its files is written to an easily grep-able, parse-able text file. Depending on the day, and the length of time for which files are being backed up, 3 emails, or 35 emails, can be sent. 
+
+Easily accessible local copies of these *tgz files, gzip compressed tar files, are kept locally, until deleted by the backupCleaner utility. Remote backups are not deleted. 
+
+**Note**:
+
+* files larger than the tar file size can not be backed up.
+
+* This program needs read rights to the files that it will be backing up
+
+* a collection of utility functions, buFunctions.pl, should be intatlled in you Perl installation's 'use' path, e.g. to ```/usr/local/lib/site_perl/ ```. 
+
+### supporting programs
+
+**noBU**	:	a little tool run to mark a direcory as do-not-back-up
+
+**backupCleaner** 	:	cleans out 'old' local copies of the backup files. What is old, for daily, weekly and monthly backups, is easily configured. 
+
 
 
 # rsyncbu

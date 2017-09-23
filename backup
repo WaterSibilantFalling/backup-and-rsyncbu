@@ -1,17 +1,5 @@
 #!/usr/bin/perl
 
-
-use English;
-use strict;
-use warnings; 
-use POSIX;
-use File::stat;
-use FileHandle;
-use IPC::Open2;
-use Getopt::Long;
-
-require("buFunctions.pl");
-
 #this script :
 #
 #
@@ -24,12 +12,25 @@ require("buFunctions.pl");
 #
 # 	sent mail is not stored (by ssmtp) while this program is running. 
 
+use English;
+use strict;
+use warnings; 
+use POSIX;
+use File::stat;
+use FileHandle;
+use IPC::Open2;
+use Getopt::Long;
+
+require("buFunctions.pl");
+
+
 
 # TODO
 #	bug:	all, incl 'find' s, should be nice -n 19
 #	bug:	date should be previous BU of type, not just the period
 #			else miss files if not run; a week may miss three days. 
 #	bug:	should not run if no email, or no internet
+#	bug:	once the base bu dir is set, this should set all bu tmp paths
 #	bug: 	I am pretty sure that some backup emails are corrupt
 #
 #	TODO:	apply a password to the tar (?) or the gzip files
@@ -44,9 +45,9 @@ require("buFunctions.pl");
 #	TODO:	Store backup records in a database (sqlLite). this will also show
 #			what files changed on what days.
 #
-#	DONE:	NOT DONE? delete old local copies of backups
-#	DONE:	NOT DONT? delete old copies of BUs from emails
-#
+#	DONE:	delete old local copies of backups (backupCleaner)
+#	TODO:	NOT DONT? delete old copies of BUs from emails
+#	TODO:	configs to a proper, ini style, config system
 #	DONE: 	get a gmail address (that works), or any other 4 GB email
 #	DONE :	store a local copy of each archive. 
 #	DONE:	bug: but not where it will be included in the next backup
@@ -159,9 +160,9 @@ foreach my $currDirID ("buStandardLinksDir", "buIndivLinksDir", "buFilesNoDelAft
 		# we know that it is a directory, so...
 		chomp(my @dirContents = `nice -n 19 find $currDir -maxdepth 1 -mindepth 1`);
 		# over item in the (sub)dir...
-		foreach $currDir (@dirContents) {
+		foreach $thisDir (@dirContents) {
 			# add dir,file or link to the bu list
-			addToBuList($currDir,  $bulist_file_raw, $referenceTimeFile);
+			addToBuList($thisDir,  $bulist_file_raw, $referenceTimeFile);
 		}
 	};
 	sleep 1;
