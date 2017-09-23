@@ -160,7 +160,7 @@ foreach my $currDirID ("buStandardLinksDir", "buIndivLinksDir", "buFilesNoDelAft
 		# we know that it is a directory, so...
 		chomp(my @dirContents = `nice -n 19 find $currDir -maxdepth 1 -mindepth 1`);
 		# over item in the (sub)dir...
-		foreach $thisDir (@dirContents) {
+		foreach my $thisDir (@dirContents) {
 			# add dir,file or link to the bu list
 			addToBuList($thisDir,  $bulist_file_raw, $referenceTimeFile);
 		}

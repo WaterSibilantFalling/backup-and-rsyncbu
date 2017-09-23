@@ -4,6 +4,15 @@ A perl 5 script that automatically backs ups all changed files:
 1.	to a remote free email service
 2.	to a local directory
 
+```
+> ./backup
+
+Usage:
+
+	backup	--buPeriod [day,week,month,all] | --since 'date time spec string' 
+
+```
+
 All changed files over the backup time period are tar'ed and gziped into tar files of a limited size, say 10MB. A listing of the files in each tar file is written to the body of an email, the tar file is attached as an attachment, and the ID of the email and each of its files is written to an easily grep-able, parse-able text file. Depending on the day, and the length of time for which files are being backed up, 3 emails, or 35 emails, can be sent. 
 
 Easily accessible local copies of these *tgz files, gzip compressed tar files, are kept locally, until deleted by the backupCleaner utility. Remote backups are not deleted. 
@@ -29,6 +38,18 @@ Easily accessible local copies of these *tgz files, gzip compressed tar files, a
 rsyncbu is a simple wrapper around rsync. rsyncbu reads an \*.ini style configuration file and then manages an arbitrary number of similar or completely different rsync backup jobs. 
 
 rsyncbu is written in Perl5 using only standard libraries. 
+
+```
+
+prompt>	rsyncBackup.pl 
+
+	rsyncBackup	--doIt  [--config=./rsyncBackup.conf ]
+
+- All configuraton is in the rsyncBackup.conf file.
+- Run this program as root for some files (/etc /sbin ...)
+
+
+```
 
 
 ### Configuration
